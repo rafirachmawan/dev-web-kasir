@@ -1,33 +1,43 @@
-// ✅ app/developer/layout.tsx
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 
 export default function DeveloperLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter();
+
   const handleLogout = () => {
     localStorage.removeItem("user");
-    window.location.href = "/auth/login";
+    router.push("/auth/login");
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-gray-50 text-gray-800">
       {/* Sidebar */}
-      <aside className="w-64 bg-gray-100 border-r p-6 space-y-6">
-        <h1 className="text-xl font-bold text-blue-700">🛠️ Developer</h1>
-        <nav className="space-y-3 text-sm">
-          <a href="/developer" className="block hover:underline">
+      <aside className="w-64 bg-white border-r px-6 py-8 shadow-md">
+        <h1 className="text-2xl font-bold text-blue-700 flex items-center gap-2 mb-8">
+          🛠️ Developer
+        </h1>
+        <nav className="space-y-4">
+          <a
+            href="/developer"
+            className="block text-md font-medium text-gray-700 hover:text-blue-600 transition"
+          >
             📊 Daftar Toko
           </a>
-          <a href="/developer/tambah-akun" className="block hover:underline">
+          <a
+            href="/developer/tambah-akun"
+            className="block text-md font-medium text-gray-700 hover:text-blue-600 transition"
+          >
             ➕ Tambah Akun
           </a>
           <button
-            className="block text-left text-red-600 hover:underline"
             onClick={handleLogout}
+            className="mt-6 block text-left w-full text-md font-medium text-red-600 hover:text-red-700 transition"
           >
             🚪 Logout
           </button>
@@ -35,7 +45,9 @@ export default function DeveloperLayout({
       </aside>
 
       {/* Konten utama */}
-      <main className="flex-1 bg-white p-8 overflow-y-auto">{children}</main>
+      <main className="flex-1 p-10 overflow-y-auto bg-white shadow-inner">
+        {children}
+      </main>
     </div>
   );
 }
