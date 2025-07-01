@@ -16,36 +16,49 @@ export default function DeveloperLayout({
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50 text-gray-800">
+    <div className="flex min-h-screen bg-gray-100 text-gray-800">
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r px-6 py-8 shadow-md">
-        <h1 className="text-2xl font-bold text-blue-700 flex items-center gap-2 mb-8">
-          🛠️ Developer
-        </h1>
-        <nav className="space-y-4">
+      <aside className="w-64 bg-blue-900 text-white flex flex-col px-6 py-8 shadow-lg">
+        <div className="flex items-center gap-3 mb-10">
+          <div className="bg-white text-blue-900 font-bold rounded-full w-10 h-10 flex items-center justify-center">
+            🛠️
+          </div>
+          <h1 className="text-xl font-semibold">Developer</h1>
+        </div>
+
+        <nav className="space-y-6 text-sm font-medium">
           <a
             href="/developer"
-            className="block text-md font-medium text-gray-700 hover:text-blue-600 transition"
+            className="flex items-center gap-2 hover:text-blue-200 transition"
           >
             📊 Daftar Toko
           </a>
           <a
             href="/developer/tambah-akun"
-            className="block text-md font-medium text-gray-700 hover:text-blue-600 transition"
+            className="flex items-center gap-2 hover:text-blue-200 transition"
           >
             ➕ Tambah Akun
           </a>
+          <a
+            href="/developer/tambah-toko"
+            className="flex items-center gap-2 hover:text-blue-200 transition"
+          >
+            🏪 Tambah Toko
+          </a>
+        </nav>
+
+        <div className="mt-auto pt-10">
           <button
             onClick={handleLogout}
-            className="mt-6 block text-left w-full text-md font-medium text-red-600 hover:text-red-700 transition"
+            className="flex items-center gap-2 text-red-400 hover:text-red-600 transition text-sm font-medium"
           >
             🚪 Logout
           </button>
-        </nav>
+        </div>
       </aside>
 
       {/* Konten utama */}
-      <main className="flex-1 p-10 overflow-y-auto bg-white shadow-inner">
+      <main className="flex-1 bg-white p-10 overflow-y-auto rounded-tl-3xl shadow-inner">
         {children}
       </main>
     </div>
