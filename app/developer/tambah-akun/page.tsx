@@ -1,7 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, getDocs, setDoc, doc } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  setDoc,
+  doc,
+  query,
+  where,
+} from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 
@@ -36,6 +43,14 @@ export default function TambahAkunPage() {
       return;
     }
 
+    // Cek username sudah dipakai belum
+    const q = query(collection(db, "users"), where("username", "==", username));
+    const snapshot = await getDocs(q);
+    if (!snapshot.empty) {
+      alert("Username sudah digunakan!");
+      return;
+    }
+
     const akun = {
       username,
       password,
@@ -43,7 +58,8 @@ export default function TambahAkunPage() {
       tokoId,
     };
 
-    await setDoc(doc(db, "users", tokoId + "-" + role), akun);
+    // Simpan akun dengan ID = username (agar bisa login via mobile)
+    await setDoc(doc(db, "users", username), akun);
     alert("Akun berhasil ditambahkan!");
     router.push("/developer");
   };
