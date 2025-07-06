@@ -6,12 +6,11 @@ import {
   getDocs,
   setDoc,
   doc,
-  query,
-  where,
   deleteDoc,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
+import { v4 as uuidv4 } from "uuid";
 
 interface TokoOption {
   id: string;
@@ -33,6 +32,7 @@ export default function TambahAkunPage() {
   const [tokoId, setTokoId] = useState("");
   const [tokoList, setTokoList] = useState<TokoOption[]>([]);
   const [akunList, setAkunList] = useState<UserAccount[]>([]);
+  const [selectedAkunId, setSelectedAkunId] = useState<string | null>(null);
   const router = useRouter();
 
   const fetchToko = async () => {
@@ -40,7 +40,7 @@ export default function TambahAkunPage() {
     const data = snapshot.docs.map((doc) => {
       const d = doc.data();
       return {
-        id: d.id,
+        id: doc.id,
         nama: d.nama,
       };
     });
@@ -49,10 +49,13 @@ export default function TambahAkunPage() {
 
   const fetchAkun = async () => {
     const snapshot = await getDocs(collection(db, "users"));
-    const data = snapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as UserAccount[];
+    const data = snapshot.docs.map((doc) => {
+      const { id: _id, ...akunData } = doc.data(); // ✅ fix overwrite
+      return {
+        id: doc.id,
+        ...(akunData as UserAccount),
+      };
+    });
     setAkunList(data);
   };
 
@@ -62,15 +65,9 @@ export default function TambahAkunPage() {
       return;
     }
 
-    const q = query(collection(db, "users"), where("username", "==", username));
-    const snapshot = await getDocs(q);
-    if (!snapshot.empty) {
-      alert("Username sudah digunakan!");
-      return;
-    }
-
-    const akun = { username, password, role, tokoId };
-    await setDoc(doc(db, "users", username), akun);
+    const akunId = uuidv4();
+    const akun = { id: akunId, username, password, role, tokoId };
+    await setDoc(doc(db, "users", akunId), akun);
     alert("Akun berhasil ditambahkan!");
     setUsername("");
     setPassword("");
@@ -81,10 +78,9 @@ export default function TambahAkunPage() {
     const newPassword = prompt("Masukkan password baru:");
     if (!newPassword) return;
     const akunRef = doc(db, "users", id);
-    await setDoc(akunRef, {
-      ...(akunList.find((a) => a.id === id) as any),
-      password: newPassword,
-    });
+    const akun = akunList.find((a) => a.id === id);
+    if (!akun) return;
+    await setDoc(akunRef, { ...akun, password: newPassword });
     alert("Password berhasil diperbarui");
     fetchAkun();
   };
@@ -179,28 +175,50 @@ export default function TambahAkunPage() {
         {akunList.map((akun) => (
           <div
             key={akun.id}
-            className="border rounded-md p-4 flex justify-between items-center"
+            className="border rounded-md p-4 cursor-pointer"
+            onClick={() =>
+              setSelectedAkunId((prev) => (prev === akun.id ? null : akun.id))
+            }
           >
-            <div>
-              <p className="font-semibold">{akun.username}</p>
-              <p className="text-sm text-gray-500">
-                {akun.role} • Toko ID: {akun.tokoId}
-              </p>
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="font-semibold">{akun.username}</p>
+                <p className="text-sm text-gray-500">
+                  {akun.role} • Toko ID: {akun.tokoId}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleGantiPassword(akun.id);
+                  }}
+                  className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
+                >
+                  Ganti Password
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleHapusAkun(akun.id);
+                  }}
+                  className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
+                >
+                  Hapus
+                </button>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleGantiPassword(akun.id)}
-                className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600"
-              >
-                Ganti Password
-              </button>
-              <button
-                onClick={() => handleHapusAkun(akun.id)}
-                className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
-              >
-                Hapus
-              </button>
-            </div>
+
+            {selectedAkunId === akun.id && (
+              <div className="mt-3 text-sm text-gray-700 px-2">
+                <p>
+                  👤 <b>Username:</b> {akun.username}
+                </p>
+                <p>
+                  🔒 <b>Password:</b> {akun.password}
+                </p>
+              </div>
+            )}
           </div>
         ))}
       </div>
