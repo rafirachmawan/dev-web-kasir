@@ -10,7 +10,6 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
-import { v4 as uuidv4 } from "uuid";
 
 interface TokoOption {
   id: string;
@@ -50,7 +49,7 @@ export default function TambahAkunPage() {
   const fetchAkun = async () => {
     const snapshot = await getDocs(collection(db, "users"));
     const data = snapshot.docs.map((doc) => {
-      const { id: _id, ...akunData } = doc.data(); // ✅ fix overwrite
+      const { id: _id, ...akunData } = doc.data();
       return {
         id: doc.id,
         ...(akunData as UserAccount),
@@ -60,16 +59,22 @@ export default function TambahAkunPage() {
   };
 
   const handleSubmit = async () => {
-    if (!username || !password || !role || !tokoId) {
+    if (!password || !role || !tokoId) {
       alert("Lengkapi semua data!");
       return;
     }
 
-    const akunId = uuidv4();
-    const akun = { id: akunId, username, password, role, tokoId };
-    await setDoc(doc(db, "users", akunId), akun);
-    alert("Akun berhasil ditambahkan!");
-    setUsername("");
+    const docId = `${tokoId}-${role}`;
+    const akun = {
+      id: docId,
+      username: docId,
+      password,
+      role,
+      tokoId,
+    };
+
+    await setDoc(doc(db, "users", docId), akun);
+    alert("✅ Akun berhasil ditambahkan!");
     setPassword("");
     fetchAkun();
   };
@@ -110,17 +115,6 @@ export default function TambahAkunPage() {
       </h1>
 
       <div className="space-y-5 text-gray-800 mb-10">
-        <div>
-          <label className="block mb-1 text-md font-medium">👤 Username</label>
-          <input
-            className="w-full px-4 py-2 border rounded-md text-lg"
-            type="text"
-            placeholder="Masukkan username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-        </div>
-
         <div>
           <label className="block mb-1 text-md font-medium">🔒 Password</label>
           <input

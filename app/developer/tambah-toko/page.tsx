@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 
 export default function TambahTokoPage() {
@@ -11,30 +11,34 @@ export default function TambahTokoPage() {
   const router = useRouter();
 
   const handleSubmit = async () => {
-    if (!tokoId.trim()) {
+    const id = tokoId.trim().toLowerCase().replace(/\s+/g, "-");
+
+    if (!id) {
       alert("Nama toko wajib diisi.");
       return;
     }
 
     setLoading(true);
     try {
-      const tokoRef = doc(db, "toko", tokoId.trim());
+      const tokoRef = doc(db, "toko", id);
       const tokoSnap = await getDoc(tokoRef);
       if (tokoSnap.exists()) {
         alert("Toko dengan ID tersebut sudah ada.");
+        setLoading(false);
         return;
       }
 
       await setDoc(tokoRef, {
-        id: tokoId.trim(),
-        nama: tokoId.trim(),
+        id,
+        nama: id,
+        dibuatPada: serverTimestamp(),
       });
 
-      alert("Toko berhasil ditambahkan.");
+      alert("✅ Toko berhasil ditambahkan.");
       setTokoId("");
       router.push("/developer");
     } catch (err) {
-      console.error("Gagal tambah toko:", err);
+      console.error("❌ Gagal tambah toko:", err);
       alert("Gagal menambahkan toko.");
     } finally {
       setLoading(false);
